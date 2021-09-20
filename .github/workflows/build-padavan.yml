@@ -1,88 +1,51 @@
-name: Build DIR-878 kvr Xray
+#修改TNAME: K2P-5.0 中的K2P-5.0为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
+name: Build Padavan
 
-on:
-  workflow_dispatch:
-    inputs:
-      branch:
-        description: 'padavan git branch'
-        required: true
-        default: 'master'
-      firmwarever:
-        description: 'firmware''s version'
-        required: true
-        default: '20210920'
-      rainbowui:
-        description: 'whether to apply rainbow ui'
-        required: true
-        default: 'false'
-      uploadcow:
-        description: 'whether to upload firmware to cowtransfer'
-        required: true
-        default: 'false'
-      uploadwet:
-        description: 'whether to upload firmware to wettransfer'
-        required: true
-        default: 'false'
-      pushplus:
-        description: 'whether to notify through pushplus'
-        required: true
-        default: 'false'
-env:
-  REPOSITORY_URL: https://vb1980:${{ secrets.PRIVREPOTOKEN }}@github.com/vb1980/Padavan-KVR.git
-  TOOLCHAIN_URL: https://github.com/hanwckf/padavan-toolchain/releases/download/v1.1/mipsel-linux-uclibc.tar.xz
-  WORK_PATH: /opt/rt-n56u
-  TIME_ZONE: Asia/Shanghai
-  TARGET_NAME: DIR-878
-  FIRMWARE_DATEPREFIX: $(date +"%Y%m%d")
-  FIRMWARE_AUTHOR: sherl
-  FIRMWARE_PATH: /opt/firmwares
+on: 
+  release:
+    types: [published]
+  push:
+    tags:
+    - 'v*'
+  #  branches: 
+  #    - master
+#  schedule:
+#    - cron: 0 8 * * 5
+  watch:
+    types: [started]
+
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-18.04
     if: github.event.repository.owner.id == github.event.sender.id
 
     steps:
     - name: Checkout
-      uses: actions/checkout@main
+      uses: actions/checkout@master
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
         sudo apt-get update
-        sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot kmod \
+        sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot \
         cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
-        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget libc-dev-bin
-        sudo timedatectl set-timezone "$TIME_ZONE"
+        pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
     - name: Clone source code
       run: |
-        if [ "${{ github.event.inputs.branch }}" = "main" ]
-        then
-        git clone --depth=1 $REPOSITORY_URL $WORK_PATH
-        else
-        git clone -b ${{ github.event.inputs.branch }} --depth=1 $REPOSITORY_URL $WORK_PATH
-        fi
-        cd $WORK_PATH/toolchain-mipsel
-        mkdir -p toolchain-3.4.x
-        wget $TOOLCHAIN_URL
-        tar -xvf mipsel-linux-uclibc.tar.xz -C toolchain-3.4.x
-    - name: Set golang
+        git clone --depth=1 https://github.com/chongshengB/rt-n56u.git /opt/rt-n56u
+        cd /opt/rt-n56u/toolchain-mipsel
+        sh dl_toolchain.sh
+        mkdir -p /opt/images/
+    - name: Build Firmware
+      env:
+        TNAME: K2P-5.0
       run: |
-        cp -f bashScripts/go.sh $(pwd)
-        sudo chmod 777 ./go.sh
-        bash ./go.sh
-    - name: Apply rainbow themes
-      if: github.event.inputs.rainbowui == 'true'
-      run: |
-        cd $WORK_PATH/trunk/user/www
-        sed -i "s/WEBUI_NAME=n56u_ribbon_fixed/WEBUI_NAME=n56u_rainbow/g" ./Makefile
-    - name: Custom config
-      run: |
-        cd $WORK_PATH/trunk
-        if [ ! -f configs/templates/$TARGET_NAME.config ] ; then
-        echo "configs/templates/${TARGET_NAME}.config not found"
+        cd /opt/rt-n56u/trunk
+        if [ ! -f configs/templates/$TNAME.config ] ; then
+        echo "configs/templates/$TNAME.config not found "
         exit 1
         fi
-        cp -f configs/templates/$TARGET_NAME.config .config
+        cp -f configs/templates/$TNAME.config .config
         sed -i 's/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=n/CONFIG_FIRMWARE_INCLUDE_OPENSSL_EXE=y/g' .config
          ################################################################################################
         #因不同型号配置功能不一样，所以先把配置项删除，如果你自己要添加其他的，也要写上删除这一条，切记！！！
@@ -192,32 +155,12 @@ jobs:
         sed -i '/CONFIG_FIRMWARE_INCLUDE_CURL/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_CURL=n" >> .config
         #########################################################################################
-    - name: Build firmware
-      run: |
-        cd $WORK_PATH/trunk
         sudo ./clear_tree
-        sudo ./build_firmware_modify $TARGET_NAME 0
-        echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
-    - name: Organize firmware files
-      id: organize
-      run: |
-        mkdir -p $FIRMWARE_PATH/
-        cd $WORK_PATH/trunk
-        rainbow_Prefix=""
-        if [ "${{ github.event.inputs.rainbowui }}" = "true" ]
-        then
-        rainbow_Prefix="rainbow_"
-        fi
-        cd $WORK_PATH/trunk/images
-        for firmwarefile in $(ls *.trx)
-        do sudo mv $firmwarefile $FIRMWARE_PATH/${FIRMWARE_DATEPREFIX}"_"${FIRMWARE_AUTHOR}"_"${rainbow_Prefix}$firmwarefile
-        done
-        cd $FIRMWARE_PATH
-        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
-        echo "::set-output name=status::success"
+        sudo ./build_firmware_modify $TNAME 0
+        sudo mv -f images/*.trx /opt/images/
     - name : Upload packages
-      uses: actions/upload-artifact@main
-      if: steps.organize.outputs.status == 'success'
+      uses: actions/upload-artifact@master
+      if: always()
       with:
         name: Padavan-packages
-        path: ${{ env.FIRMWARE }}
+        path: /opt/images

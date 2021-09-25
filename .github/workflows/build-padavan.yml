@@ -132,8 +132,6 @@ jobs:
         #格式如下：
         #sed -i '/自定义项/d' .config
         #echo "自定义项=y" >> .config
-        sed -i "s/FIRMWARE_BUILDS_REV=.*/FIRMWARE_BUILDS_REV=${{ github.event.inputs.firmwarever }}/g" ./versions.inc
-        echo '20211001'
         sed -i '/CONFIG_FIRMWARE_INCLUDE_LRZSZ/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_LRZSZ=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_SOCAT/d' .config

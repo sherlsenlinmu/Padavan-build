@@ -1,18 +1,9 @@
 #修改TNAME: K2P-5.0 中的K2P-5.0为你需要编译的型号，注意名称要与configs/templates/目录下的名字相同
 name: Build Padavan
 
-on: 
-  release:
-    types: [published]
-  push:
-    tags:
-    - 'v*'
-  #  branches: 
-  #    - master
-#  schedule:
-#    - cron: 0 8 * * 5
-  watch:
-    types: [started]
+on:
+  repository_dispatch:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -22,6 +13,7 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@master
+      
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -30,15 +22,17 @@ jobs:
         sudo apt-get -y install unzip libtool-bin curl cmake gperf gawk flex bison nano xxd fakeroot \
         cpio git python-docutils gettext automake autopoint texinfo build-essential help2man \
         pkg-config zlib1g-dev libgmp3-dev libmpc-dev libmpfr-dev libncurses5-dev libltdl-dev wget
+        
     - name: Clone source code
       run: |
-        git clone --depth=1 https://github.com/sherlsenlinmu/rt-n56u.git /opt/rt-n56u
+        git clone --depth=1 git clone https://github.com/sherlsenlinmu/Padavan-KVR.git /opt/rt-n56u
         cd /opt/rt-n56u/toolchain-mipsel
         sh dl_toolchain.sh
         mkdir -p /opt/images/
+        
     - name: Build Firmware
       env:
-        TNAME: DIR-867-5.0
+        TNAME: PSG1218
       run: |
         cd /opt/rt-n56u/trunk
         if [ ! -f configs/templates/$TNAME.config ] ; then
@@ -84,12 +78,12 @@ jobs:
         echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CLIENT=n" >> .config #SOFTETHERVPN
         echo "CONFIG_FIRMWARE_INCLUDE_SOFTETHERVPN_CMD=n" >> .config #SOFTETHERVPN
         #科学相关
-        echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=y" >> .config #SS plus+
+        echo "CONFIG_FIRMWARE_INCLUDE_SHADOWSOCKS=n" >> .config #SS plus+
         echo "CONFIG_FIRMWARE_INCLUDE_V2RAY=n" >> .config #集成v2ray执行文件（3.8M左右)
         echo "CONFIG_FIRMWARE_INCLUDE_XRAY=n" >> .config #集成xray执行文件(5.6M左右)，可以代替v2ray，注：如果闪存太小不够还是建议使用v2ray
         echo "CONFIG_FIRMWARE_INCLUDE_TROJAN=n" >> .config #集成trojan执行文件(1.1M左右)
-        echo "CONFIG_FIRMWARE_INCLUDE_SSOBFS=y" >> .config # simple-obfs混淆插件
-        echo "CONFIG_FIRMWARE_INCLUDE_SSSERVER=y" >> .config #SS server
+        echo "CONFIG_FIRMWARE_INCLUDE_SSOBFS=n" >> .config # simple-obfs混淆插件
+        echo "CONFIG_FIRMWARE_INCLUDE_SSSERVER=n" >> .config #SS server
         echo "CONFIG_FIRMWARE_INCLUDE_KUMASOCKS=n" >> .config #socks5
         #
         echo "CONFIG_FIRMWARE_INCLUDE_IPT2SOCKS=n" >> .config
@@ -115,7 +109,7 @@ jobs:
         echo "CONFIG_FIRMWARE_INCLUDE_CADDY=n" >> .config #在线文件管理服务
         echo "CONFIG_FIRMWARE_INCLUDE_CADDYBIN=n" >> .config #集成caddu执行文件，此文件有13M,请注意固件大小。如果不集成，会从网上下载下来执行，不影响正常使用
         #
-        echo "CONFIG_FIRMWARE_INCLUDE_WYY=y" >> .config #网易云解锁
+        echo "CONFIG_FIRMWARE_INCLUDE_WYY=n" >> .config #网易云解锁
         echo "CONFIG_FIRMWARE_INCLUDE_WYYBIN=n" >> .config #网易云解锁GO版本执行文件（4M多）注意固件超大小,不集成会自动下载
         #
         echo "CONFIG_FIRMWARE_INCLUDE_OPENVPN=n" >> .config #openvpn
@@ -133,13 +127,13 @@ jobs:
         #sed -i '/自定义项/d' .config
         #echo "自定义项=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_LRZSZ/d' .config
-        echo "CONFIG_FIRMWARE_INCLUDE_LRZSZ=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_LRZSZ=n" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_SOCAT/d' .config
-        echo "CONFIG_FIRMWARE_INCLUDE_SOCAT=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SOCAT=n" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_SMBD36/d' .config
-        echo "CONFIG_FIRMWARE_INCLUDE_SMBD36=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_SMBD36=n" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_VLMCS/d' .config
-        echo "CONFIG_FIRMWARE_INCLUDE_VLMCS=y" >> .config
+        echo "CONFIG_FIRMWARE_INCLUDE_VLMCS=n" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_TTYD/d' .config
         echo "CONFIG_FIRMWARE_INCLUDE_TTYD=y" >> .config
         sed -i '/CONFIG_FIRMWARE_INCLUDE_NANO/d' .config

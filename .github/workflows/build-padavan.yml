@@ -2,11 +2,62 @@
 name: Build Padavan
 
 on:
-  repository_dispatch:
   workflow_dispatch:
-
+    inputs:
+      target:
+        type: choice
+        description: 'target to compile'
+        options:
+        - Phicomm_K1
+        - Phicomm_K2
+        - Oyewifi_OYE-0001
+        - Lenovo_NEWIFI-MINI
+        - Xiaomi_MINI
+        - Xiaomi_3
+        - Xiaomi_3C
+        - Xiaomi_4
+        - Xiaomi_R3G
+        - Xiaomi_R4A
+        - Xiaomi_R3P
+        - Gee_HiWifi1S
+        - Gee_HiWifi2
+        - Gee_Enjoy1200
+        - Qihoo_360P2
+        - Xiaomi_NANO
+        - Meizu_R13
+        - Meizu_R13P
+        - Asus_RT-AC1200GU
+        - Xiaoyu_C1
+        - Xiaoyu_C3
+        - Xiaoyu_C5
+        - Youhua_WR1200JS
+        - Diting_NEWIFI3
+        - Gee_B70
+        - Totolink_A3004NS
+        - Phicomm_K2P
+        - Phicomm_K2P-USB
+        - JCG_836PRO
+        - JCG_AC860M
+        - DLINK_DIR-882
+        - DLINK_DIR-878
+        - Motorola_MR2600
+        - TP-LINK_WDR7300
+        - Redmi_AC2100
+        - Xiaomi_CR6606
+        - Xiaomi_CR6608
+        - Xiaomi_CR6609
+        - Xiaomi_AC2100
+        - JCG_Y2
+        - ZTE_E8820V2
+        - ZTE_E8820S
+        - Raisecom_MSG1500_X.00
+        - Netgear_R6220
+      uploadanon:
+        type: boolean
+        description: 'upload firmware to anonfiles'
+        default: 'false'
 env:
-  REPOSITORY_URL: https://github.com/sherlsenlinmu/Padavan-KVR.git
+  REPOSITORY_URL: https://github.com/hanwckf/rt-n56u.git
   TOOLCHAIN_URL: https://github.com/hanwckf/padavan-toolchain/releases/download/v1.1/mipsel-linux-uclibc.tar.xz
   WORK_PATH: /opt/rt-n56u
   TIME_ZONE: Asia/Shanghai
@@ -20,7 +71,149 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: Bonnie2980/variable-mapper@master
-      
+      id: export
+      with:
+        key: "${{ github.event.inputs.target }}"
+        map: |
+          {
+            "Phicomm_K1": {
+              "model": "PSG1208"
+            },
+            "Phicomm_K2": {
+              "model": "PSG1218"
+            },
+            "Oyewifi_OYE-0001": {
+              "model": "OYE-001"
+            },
+            "Lenovo_NEWIFI-MINI": {
+              "model": "NEWIFI-MINI"
+            },
+            "Xiaomi_MINI": {
+              "model": "MI-MINI"
+            },
+            "Xiaomi_3": {
+              "model": "MI-3"
+            },
+            "Xiaomi_3C": {
+              "model": "MI-3C"
+            },
+            "Xiaomi_4": {
+              "model": "MI-4"
+            },
+            "Xiaomi_R3G": {
+              "model": "MI-R3G"
+            },
+            "Xiaomi_R4A": {
+              "model": "MI-R4A"
+            },
+            "Xiaomi_R3P": {
+              "model": "MI-R3P"
+            },
+            "Gee_HiWifi1S": {
+              "model": "HC5661A"
+            },
+            "Gee_HiWifi2": {
+              "model": "HC5761A"
+            },
+            "Gee_Enjoy1200": {
+              "model": "HC5861B"
+            },
+            "Qihoo_360P2": {
+              "model": "360P2"
+            },
+            "Xiaomi_NANO": {
+              "model": "MI-NANO"
+            },
+            "Meizu_R13": {
+              "model": "MZ-R13"
+            },
+            "Meizu_R13P": {
+              "model": "MZ-R13P"
+            },
+            "Asus_RT-AC1200GU": {
+              "model": "RT-AC1200GU"
+            },
+            "Xiaoyu_C1": {
+              "model": "XY-C1"
+            },
+            "Xiaoyu_C3": {
+              "model": "XY-C1"
+            },
+            "Xiaoyu_C5": {
+              "model": "XY-C1"
+            },
+            "Youhua_WR1200JS": {
+              "model": "WR1200JS"
+            },
+            "Diting_NEWIFI3": {
+              "model": "NEWIFI3"
+            },
+            "Gee_B70": {
+              "model": "B70"
+            },
+            "Totolink_A3004NS": {
+              "model": "A3004NS"
+            },
+            "Phicomm_K2P": {
+              "model": "K2P"
+            },
+            "Phicomm_K2P-USB": {
+              "model": "K2P-USB"
+            },
+            "JCG_836PRO": {
+              "model": "JCG-836PRO"
+            },
+            "JCG_AC860M": {
+              "model": "JCG-AC860M"
+            },
+            "DLINK_DIR-882": {
+              "model": "DIR-882"
+            },
+            "DLINK_DIR-878": {
+              "model": "DIR-878"
+            },
+            "Motorola_MR2600": {
+              "model": "MR2600"
+            },
+            "TP-LINK_WDR7300": {
+              "model": "WDR7300"
+            },
+            "Redmi_AC2100": {
+              "model": "RM2100"
+            },
+            "Xiaomi_CR6606": {
+              "model": "CR660x"
+            },
+            "Xiaomi_CR6608": {
+              "model": "CR660x"
+            },
+            "Xiaomi_CR6609": {
+              "model": "CR660x"
+            },
+            "Xiaomi_AC2100": {
+              "model": "R2100"
+            },
+            "JCG_Y2": {
+              "model": "JCG-Y2"
+            },
+            "ZTE_E8820V2": {
+              "model": "E8820V2"
+            },
+            "ZTE_E8820S": {
+              "model": "ZTE_E8820S"
+            },
+            "Raisecom_MSG1500_X.00": {
+              "model": "MSG1500"
+            },
+            "Netgear_R6220": {
+              "model": "R6220"
+            },
+            ".*": {
+              "model": "K2P"
+            }
+          }
+        export_to: env
+        mode: first_match
     - name: Initialization environment
       env:
         DEBIAN_FRONTEND: noninteractive
@@ -37,6 +230,12 @@ jobs:
         mkdir -p toolchain-3.4.x
         wget $TOOLCHAIN_URL
         tar -xvf mipsel-linux-uclibc.tar.xz -C toolchain-3.4.x
+    - name: Set environment variables
+      run: |
+        git config --global log.date format:'%Y%m%d'
+        cd $WORK_PATH
+        echo "FIRMWARE_VERSION=$(git log -1 --pretty=format:"%cd")" >> $GITHUB_ENV
+        echo "FIRMWARE_DATEPREFIX=$(date +"%Y%m%d")" >> $GITHUB_ENV
         
     - name: Build Firmware
       env:
